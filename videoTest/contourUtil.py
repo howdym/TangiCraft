@@ -177,9 +177,10 @@ def get_contours(img):
     e_adj = np.absolute(edges)
     edges = np.uint8(e_adj)
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 1, minLineLength=1, maxLineGap=15)
-    for line in lines:
-        line = line[0]
-        cv2.line(thresh, (line[0], line[1]), (line[2], line[3]), (0, 0, 0), 1)
+    if lines is not None:
+        for line in lines:
+            line = line[0]
+            cv2.line(thresh, (line[0], line[1]), (line[2], line[3]), (0, 0, 0), 1)
 
     thresh1 = cv2.subtract(thresh, edges)
     # for i in range(thresh.shape[0]):
