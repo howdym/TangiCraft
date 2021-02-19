@@ -186,8 +186,8 @@ def get_contours(img):
     #     for j in range(thresh.shape[1]):
     #         thresh[i][j] = max(0, thresh[i][j] - edges[i][j])
 
-    cv2.imshow("Image", thresh)
-    cv2.waitKey(0)
+    # cv2.imshow("Image", thresh)
+    # cv2.waitKey(0)
 
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
