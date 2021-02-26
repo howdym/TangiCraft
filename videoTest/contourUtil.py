@@ -17,7 +17,7 @@ class Board:
             self.side_length = 36
 
         # TODO: Remove when standard height is set and workflow for finding side length occurs
-        self.side_length = 36
+        # self.side_length = 36
 
         self.width, self.height = img.shape[0], img.shape[1]
 
@@ -33,6 +33,7 @@ class Board:
 
     def get_side_length(self, img):
         cnts = get_contours(img)
+        ret = 0
 
         for c in cnts:
             shape = self.sd.detect(c)
@@ -42,7 +43,11 @@ class Board:
 
             x, y, w, h = cv2.boundingRect(c)
 
-            return w
+            if w > ret:
+                ret = w
+
+        if ret != 0:
+            return ret
 
     def tc_to_center(self, x, y, w, h):
         return (x + (w // 2)), (y + (h // 2))
@@ -182,16 +187,13 @@ def get_contours(img):
             line = line[0]
             cv2.line(thresh, (line[0], line[1]), (line[2], line[3]), (0, 0, 0), 1)
 
-    thresh1 = cv2.subtract(thresh, edges)
-    # for i in range(thresh.shape[0]):
-    #     for j in range(thresh.shape[1]):
-    #         thresh[i][j] = max(0, thresh[i][j] - edges[i][j])
-
-    # cv2.imshow("Image", thresh)
-    # cv2.waitKey(0)
-
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
+
+    # for c in cnts:
+    #     cv2.drawContours(thresh, [c], -1, (0, 255, 255), 2)
+    # cv2.imshow("Image", thresh)
+    # cv2.waitKey(0)
 
     return cnts
 

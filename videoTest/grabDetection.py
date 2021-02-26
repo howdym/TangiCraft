@@ -30,6 +30,9 @@
 
 # Modularized isn't working for reason???
 
+# Observations: Fast wrist movements will cause code to think it's a brand new hand
+    # Maybe not so reliable?
+
 import cv2
 import mediapipe as mp
 import math
@@ -176,7 +179,21 @@ class hand:
     def get_hand_slope(self, mhl_val):
         wrist = mhl_val[0]
         middle_tip = mhl_val[12]
-        return math.tanh((wrist.y - middle_tip.y) / (wrist.x - middle_tip.x))
+        return math.degrees(math.atan((wrist.y - middle_tip.y) / (wrist.x - middle_tip.x)))
+
+    # Check the hand angle then see if the pincher, thumb, and wrist are in order before determining grabbing.
+    # Currently checking with index.
+    # Might not work with multiple finger check.
+    # We are trying to check if thumb is before pincher, but it doesn't quite work if they are close and covered. Still
+    # measures as before even though it may not be. Makes sense because the code is just assuming at that point. 
+    def grab_heuristic(self, mhl_val, thumb_ind, pincher_ind):
+        wrist = mhl_val[0]
+        thumb = mhl_val[thumb_ind]
+        pincher = mhl_val[pincher_ind]
+        if 60 < self.slope <= 90 or -90 <= self.slope < -60:
+            return wrist.y < thumb.y < pincher.y or pincher.y < thumb.y < wrist.y
+        else:
+            return wrist.x < thumb.x < pincher.x or pincher.x < thumb.x < wrist.x
 
     def is_still(self, loc):
         distance = eud_dist(loc.x, loc.y, self.last_loc.x, self.last_loc.y)
@@ -189,7 +206,7 @@ class hand:
         return params[0] < distance < params[1]
 
     def is_rotated(self, mhl_val):
-        return abs(self.slope - self.get_hand_slope(mhl_val)) < 0.25
+        return abs(self.slope - self.get_hand_slope(mhl_val)) < 20
 
     # Return new location and index if there, else return None
     def find_loc(self, mh, mhl):
@@ -281,9 +298,10 @@ class hand:
         # Focus on only index finger for now
         pincher = p2
         if self.best_hand == self.handedness:
-            grab = not thumbIsOpen and pincher
+            grab = not thumbIsOpen and pincher # and self.grab_heuristic(hand_landmarks.landmark._values, 4, 8)
         else:
             grab = not thirdFingerIsOpen and alt_pincher
+            # and self.grab_heuristic(hand_landmarks.landmark._values, 20, 16)
 
         return grab
 
@@ -340,7 +358,7 @@ board = None
 
 # For webcam input:
 hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5, max_num_hands=2)
-cap = cv2.VideoCapture("IMG_4362.MOV")
+cap = cv2.VideoCapture("./testVideos/0.MOV")
 loh = []
 no_hands = None
 trigger = 10
@@ -432,6 +450,11 @@ while cap.isOpened():
         no_hands = 0
 
     dsize = get_dimensions(image)
+
+    # for h in loh:
+    #     print(h)
+    # if len(loh) != 0:
+    #     print("")
 
     # resize image
     image = cv2.resize(image, dsize)
