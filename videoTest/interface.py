@@ -1,6 +1,6 @@
 import cv2
 import mediapipe as mp
-from videoTest import board, util
+from videoTest import contourUtil, util
 from videoTest import grabDetection as gD
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
@@ -70,7 +70,7 @@ class interface:
         # # resize image
         # img = cv2.resize(img, ds)
         img = deepcopy(self.image)
-        board_ret = board.Board(img)
+        board_ret = contourUtil.Board(img)
 
         txt = 'Remove block. Press "a" when complete.'
         img_txt = cv2.putText(img, txt, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 2, cv2.LINE_AA)
@@ -224,6 +224,14 @@ class interface:
             #     print("     ")
             #     # if val.moving:
             #     #     print("moving")
+
+            # Check if the no_hands state has started keeping track and is triggered
+            # if no_hands is not None and no_hands > trigger:
+                # If triggered, reset the no hands state and clean up the surface
+
+                # TODO: Might need to remove if lighting is rough
+                # board.surface_level(image)
+                no_hands = 0
 
             # Draw circles to mark where blocks were placed in this frame
             for d in lod:

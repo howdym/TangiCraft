@@ -1,9 +1,5 @@
 import math
 import cv2
-import numpy as np
-import imutils
-from videoTest import shapeDetection
-
 
 # Get euclidean distance of two points
 def eud_dist(a_x, a_y, b_x, b_y):
@@ -84,60 +80,3 @@ def drawlines(dim, img, b):
         y_start += offset
 
     return img
-
-
-def get_contours(img):
-    # Process the image to be a sharp black and white contrast to find contours
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    thresh = cv2.threshold(blurred, 150, 255, cv2.THRESH_BINARY)[1]
-    gray = cv2.bilateralFilter(gray, -10, 25, 10)
-
-    # Get the edges via Canny edge detection
-    edges = cv2.Canny(gray, 100, 200, apertureSize=3)
-
-    e_adj = np.absolute(edges)
-    edges = np.uint8(e_adj)
-    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 1, minLineLength=1, maxLineGap=15)
-
-    # Draw the lines onto the b/w image to sharpen the edges in the image
-    if lines is not None:
-        for line in lines:
-            line = line[0]
-            cv2.line(thresh, (line[0], line[1]), (line[2], line[3]), (0, 0, 0), 1)
-
-    # Get the contours
-    cnts = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-
-    return cnts
-
-
-def get_side_length(img):
-    cnts = get_contours(img)
-    ret = 0
-
-    for c in cnts:
-        sd = shapeDetection.ShapeDetector()
-        shape = sd.detect(c)
-
-        # Only look at contours that are rectangles or squares because the rest probably aren't blocks
-        if not (shape == 'rectangle' or shape == 'square'):
-            continue
-
-        # cv2.drawContours(img, [c], -1, (0, 255, 0), 2)
-        # # cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        # # show the output image
-        # cv2.imshow("Image", img)
-        # cv2.waitKey(0)
-
-        x, y, w, h = cv2.boundingRect(c)
-
-        # The temporary strategy is to find the maximum width among all quadrilateral contours
-        if w > ret:
-            ret = w
-
-    # Only return the value if it's non-zero. Otherwise return None
-    if ret != 0:
-        return ret
