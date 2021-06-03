@@ -20,7 +20,7 @@ class interface:
 
         # For webcam input:
         # cap = cv2.VideoCapture("./testVideos/IMG_4362.MOV")
-        # cap = cv2.VideoCapture("./testVideos/test3.MOV")
+        # self.cap = cv2.VideoCapture("./testVideos/test3.MOV")
         self.cap = cv2.VideoCapture(1)
 
         # List of hands
@@ -249,12 +249,16 @@ class interface:
                 break
 
         self.recording.close()
+        return self.log
 
 
 def main():
     display = interface()
     display.prompt_measurement()
-    display.process_image()
+    log = display.process_image()
+
+    # Modularization: have the build be done after the tracking.
+    # display.board.build_activated(log)
 
 
 if __name__ == "__main__":
